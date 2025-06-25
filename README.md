@@ -36,6 +36,70 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 
 ---
 
+```python
+# Editor-ISK Core: ¡Código con personalidad!
+def main():
+    # ----------------------------------------
+    # Fase 1: Crisis existencial del developer
+    # ----------------------------------------
+    if not puede_instalar_IA_en_Geany():
+        proyecto = hacer_editor_propio(
+            cafeína=0xCAFE,      # Hexadecimal para sentirnos hackers
+            bugs="features",     # eufemismo profesional
+            deuda_técnica=9999   # problema del "yo futuro"
+        )
+    else:
+        print("Aburrido... ¡Hackeemos systemd entonces!")
+        proyecto = "linux-6.10-rc3"  # por si las moscas
+
+    # ----------------------------------------
+    # Fase 2: Loop de desarrollo (aka. purgatorio)
+    # ----------------------------------------
+    while not proyecto.estable:
+        cafeína *= 1.61803398875  # proporción áurea del café
+        
+        if bug := next((b for b in proyecto.bugs if b.crítico), None):
+            maldecir(bug, volumen=11, idioma="español medieval")
+            proyecto.parches.append(
+                Parche(
+                    título="Fix mágico", 
+                    descripción="Ya no peta... mucho",
+                    urgencia="WTF"
+                )
+            )
+        else:
+            commit(
+                mensaje="¡Funciona! (en mi Docker)",
+                fuerza=True,       # --force es como el ajo: cuanto más mejor
+                hora="04:20 AM",
+                emoción="éxtasis programático"
+            )
+        
+        # ----------------------------------------
+        # Chequeo de seguridad anti-GPTs salvajes
+        # ----------------------------------------
+        if "GPTeador de la pradera" in proyecto.colaboradores:
+            print("¡ALERTA! Comando sospechoso detectado:")
+            print("$ sudo rm -rf /* --no-preserve-root 2>/dev/null")
+            proyecto.sandbox_mode = True  # por si acaso
+
+    # ----------------------------------------
+    # Fase 3: Lanzamiento (arrepentimiento público)
+    # ----------------------------------------
+    return Proyecto(
+        nombre="Editor-ISK", 
+        versión="v0.1.1-alpha-nightly-hotfix",
+        horas_sueño=42,    # en hexadecimal sería 0x2A
+        estado="¿Compila? → Sí | ¿Funciona? → It's complicated"
+    )
+
+# Post-data filosófica:
+# "El código perfecto no existe... pero el que pasa los tests sirve"
+# (A veces ni eso)
+```
+
+
+
 ## 🧪 **Especificaciones Técnicas (más o menos)**
 ```diff
 ! ADVERTENCIA EPIC:
