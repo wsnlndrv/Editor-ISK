@@ -46,7 +46,7 @@ def main():
         
     # P.D.: Cuidado con el 'GPTador de la pradera'
     # No sea que te cuelen un 'sudo rm -rf /* --no-preserve-root' 😱
-
+'''
 📜 Licencia ⚖️
 
 GPLv3 - Usa, modifica, comparte (pero nada de privatizar)
