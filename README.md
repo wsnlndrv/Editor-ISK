@@ -79,7 +79,7 @@ def main():
         # ----------------------------------------
         # Chequeo de seguridad anti-GPTs salvajes
         # ----------------------------------------
-        if "GPTeador de la pradera" in proyecto.colaboradores:
+        if "GPT4" in proyecto.colaboradores:
             print("¡ALERTA! Comando sospechoso detectado:")
             print("$ sudo rm -rf /* --no-preserve-root 2>/dev/null")
             proyecto.sandbox_mode = True  # por si acaso
