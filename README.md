@@ -46,11 +46,23 @@ def main():
         
     # P.D.: Cuidado con el 'GPTador de la pradera'
     # No sea que te cuelen un 'sudo rm -rf /* --no-preserve-root' 😱
-'''
-📜 Licencia ⚖️
 
-GPLv3 - Usa, modifica, comparte (pero nada de privatizar)
-https://img.shields.io/badge/Licencia-GPLv3-blue?style=flat-square
+📜 Licencia ⚖️
+[![Licencia GPLv3](https://img.shields.io/badge/⚖️_Licencia-GPLv3-important)](LICENSE)
+[![Made with](https://img.shields.io/badge/Hecho_con-5%25_paciencia-ff69b4)](https://github.com/wsnlndrv)
+[![GPU](https://img.shields.io/badge/GPU-8GB%2B-orange)](https://lmstudio.ai)
+
+*"El editor que nadie pidió... pero que todos merecíamos"*  
 
 «Hecho en Linux con amor, bugs incluidos sin cargo extra»
 ¿Preguntas? ¡Mejor abre un issue que leer la mente no es mi fuerte! 😅
+
+## 🚀 **¡Hola, mundo 2.0!**
+Este Frankenstein digital nació cuando:
+```python
+while not editor_perfecto:
+    cafeína += 1
+    if bug in código:
+        maldecir(bug)
+    else:
+        commit("¡Funciona... por ahora!")
