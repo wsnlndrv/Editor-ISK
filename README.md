@@ -18,7 +18,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 2. **Descarga un modelo GGUF** como:  
    [`deepseek-coder-6.7b-instruct.Q4_K_M`](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) (8GB VRAM mínimo)
 3. **Prende el servidor API** (puerto `8080` por defecto)
-4. **¡Arranca el editor!** (Terminal XFCE incluida de serie)
+4. **¡Arranca el editor!** (Terminal XFCE incluida de serie... En el S.O.)
 
 📜 Licencia ⚖️
 [![Licencia GPLv3](https://img.shields.io/badge/⚖️_Licencia-GPLv3-important)](LICENSE)
