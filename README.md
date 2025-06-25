@@ -91,7 +91,7 @@ def main():
         nombre="Editor-ISK", 
         versión="v0.1.1-alpha-nightly-hotfix",
         horas_sueño=42,    # en hexadecimal sería 0x2A
-        estado="¿Compila? → Sí | ¿Funciona? → It's complicated"
+        estado="¿Arranca? → Sí | ¿Funciona? → It's complicated"
     )
 
 # Post-data filosófica:
