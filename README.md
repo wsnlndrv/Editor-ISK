@@ -35,33 +35,55 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 
 ---
 
-## ⚠️ **Disclaimer honesto**
+## 🧪 **Especificaciones Técnicas (más o menos)**
 ```diff
-- Los modelos locales ≠ DeepSeek V3 (son como un tamagotchi: requieren cuidados)
-- GPU vieja? Usa modelos pequeños (Mínimo recomendable ¿8Gb Vram?)
-- ¿Bugs? ¡Feature no documentada! 🐞☕
-- ¿Interfaz spartana? Así cargamos más rápido 🚀
+! ADVERTENCIA EPIC:
+- Los modelos locales ≠ DeepSeek V3 
+  (son como tamagotchis: si no los cuidas, se mueren)
+- GPU antigua? Modelos pequeños (8GB VRAM mínimo)
+- ¿Interfaz espartana? ¡Feature de optimización! 🚀
 
 def main():
+    # Fase 1: Crisis existencial
     if not puede_instalar_IA_en_Geany():
-        hacer_editor_propio(con="café", bugs="incluidos")
+        proyecto = hacer_editor_propio(
+            cafeína=0xCAFE,          # Hexadecimal para parecer hacker
+            bugs="features",         # Marketing 101
+            deuda_técnica=9999       # Future Me's problem
+        )
     else:
-        print("Aburrido... ¡Hackeemos algo!")
+        print("Aburrido... ¡Hackeemos el kernel entonces!")
+        proyecto = "linux-next"      # Por si acaso
+
+    # Fase 2: Desarrollo real (aka. "el infierno")
+    while not proyecto.estable:
+        cafeína *= 1.61803398875     # Proporción áurea del café
         
-*"El editor que nadie pidió... pero que todos merecíamos"*  
+        if bug := next((b for b in proyecto.bugs if b.crítico), None):
+            maldecir(bug, idioma="español antiguo")  # Más efectivo
+            proyecto.parches.append(
+                Parche(título="Fix mágico", 
+                       descripción="Ya no crashea... mucho")
+            )
+        else:
+            commit(
+                mensaje="¡Funciona! (en mi máquina)",
+                fuerza=True,          # --force es mi amor verdadero
+                hora="03:42 AM",
+                emoción="euforia irracional"
+            )
+        
+        # Post-mortem debugging
+        if "GPTeador de la pradera" in proyecto.colaboradores:
+            print("¡ALERTA! Posible rm -rf /* camuflado")
+            proyecto.sandbox_mode = True  # Por si las moscas
 
-«Hecho en Linux con amor, bugs incluidos sin cargo extra»
-¿Preguntas? ¡Mejor abre un issue que leer la mente no es mi fuerte! 😅
+    # Fase 3: Lanzamiento (aka. "arrepentimiento público")    
+    return Proyecto(
+        nombre="Editor-ISK", 
+        versión="0.1.1-alpha-preview-nightly",
+        soporte_vital=42  # Horas de sueño perdidas
+    )
 
-## 🚀 **¡Hola, mundo 2.0!**
-Este Frankenstein digital nació cuando:
-```python
-while not editor_perfecto:
-    cafeína += 1
-    if bug in código:
-        maldecir(bug)
-    else:
-        commit("¡Funciona... por ahora!")
-
-    # P.D.: Cuidado con el 'GPTeador de la pradera'
-    # No sea que te cuelen un 'sudo rm -rf /* --no-preserve-root' 😱
+# Corolario Zen:
+# "El código perfecto no existe... pero el que compila sirve"
