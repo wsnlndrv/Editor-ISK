@@ -20,4 +20,4 @@ y ya podrías recibir recomendaciones del modelo a partir de un Prompt preconfig
 
 No esperes grandes hazañas de un modelo local cuantizado.  
 
-![Captura del Editor](https://github.com/wsnlndrv/Editor-ISK/blob/main/Capturas/captura_20250625_044446.png?raw=true)
+![Captura del Editor](https://github.com/wsnlndrv/Editor-ISK/blob/main/Capturas/captura_20250625_050624.png?raw=true)
