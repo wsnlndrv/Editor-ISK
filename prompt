@@ -1,0 +1,882 @@
+Crea un editor de código Python con PySide6 que incluya:  
+
+1. **Configuración persistente** (JSON) para:  
+   - Directorio por defecto, endpoint de IA, fuente del editor, tamaño de fuente y prompt de IA.  
+
+2. **Editor con resaltado de sintaxis** para:  
+   - Palabras clave, strings, comentarios y números (colores personalizados).
+   - Fondo del editor de codigo de color negro.
+
+3. **Funcionalidades clave**:  
+   - Crear archivos `.py` con plantilla o estructura básica.
+   - Abrir archivo para poder cargar un archivo que ha sido guardado previamente.
+   - Guardar/cerrar archivos.  
+   - Ejecutar código en `xfce4-terminal` (con terminal persistente).  
+   - Analizar código con IA (envío a endpoint, formato de respuesta limpio).  
+
+4. **Interfaz**:  
+   - Pestañas para editor y configuración.  
+   - Barra de herramientas con botones de acción.  
+   - Panel lateral para respuestas de IA y ejemplo de código.
+
+5. **Manejo de errores**:  
+   - Validación de conexión con IA.  
+   - Mensajes claros para fallos en guardado/ejecución.  
+
+6. **Extras**:  
+   - Aplicar configuración de fuente al editor automáticamente.  
+   - Permitir personalizar el prompt de IA desde la interfaz.  
+   - El editor conecta con LM Studio API en el puerto 8080
+
+El código debe estar modularizado en clases (ConfigManager, SyntaxHighlighter, etc.) y ser compatible con Python 3.8+.  
+
+
+
+Sin terminar ->#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import json
+import subprocess
+import webbrowser
+from datetime import datetime
+from pathlib import Path
+
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                              QTabWidget, QTextEdit, QPushButton, QLabel, QStatusBar,
+                              QFileDialog, QMessageBox, QLineEdit, QFormLayout, QSplitter,
+                              QInputDialog, QToolBar, QToolButton, QMenu, QSizePolicy)
+from PySide6.QtCore import Qt, QRegularExpression, QSize
+from PySide6.QtGui import (QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QTextCursor,
+                          QPainter, QIcon, QAction, QTextDocument, QKeySequence, QPalette)
+
+
+class ConfigManager:
+    """Gestor de configuración mejorado con validación"""
+    def __init__(self, config_file="editor_config.json"):
+        self.config_file = config_file
+        self.default_config = {
+            "default_dir": str(Path.home()),
+            "ai_endpoint": "http://localhost:8000/api/analyze",
+            "editor_font": "Fira Code",
+            "font_size": 14,
+            "theme": "dark",
+            "syntax_colors": {
+                "keyword": "#569CD6",
+                "string": "#CE9178",
+                "comment": "#6A9955",
+                "number": "#B5CEA8",
+                "background": "#1E1E1E",
+                "text": "#D4D4D4"
+            },
+            "ai_prompt": """Analiza el siguiente código Python y:
+1. Identifica errores potenciales
+2. Sugiere mejoras de estilo
+3. Proporciona una versión optimizada si es necesario""",
+            "recent_files": []
+        }
+
+    def load_config(self):
+        """Carga la configuración con manejo robusto de errores"""
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    # Validar y mezclar con valores por defecto
+                    return {**self.default_config, **config}
+        except Exception as e:
+            print(f"Error cargando configuración: {e}")
+        return self.default_config
+
+    def save_config(self, config):
+        """Guarda la configuración con validación"""
+        try:
+            # Validar tipos antes de guardar
+            validated_config = {
+                k: v for k, v in config.items() 
+                if k in self.default_config and isinstance(v, type(self.default_config[k]))
+            }
+            
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(validated_config, f, indent=4, ensure_ascii=False)
+            return True
+        except Exception as e:
+            print(f"Error guardando configuración: {e}")
+            return False
+
+    def add_recent_file(self, file_path):
+        """Mantiene una lista de archivos recientes"""
+        config = self.load_config()
+        recent_files = config.get("recent_files", [])
+        
+        if file_path in recent_files:
+            recent_files.remove(file_path)
+        recent_files.insert(0, file_path)
+        
+        # Limitar a 10 archivos recientes
+        config["recent_files"] = recent_files[:10]
+        self.save_config(config)
+
+
+class PythonSyntaxHighlighter(QSyntaxHighlighter):
+    """Resaltador de sintaxis mejorado con más elementos"""
+    def __init__(self, parent=None, colors=None):
+        super().__init__(parent)
+        self.colors = colors or {}
+        self.setup_rules()
+
+    def setup_rules(self):
+        """Configura reglas de resaltado con más elementos"""
+        self.rules = []
+
+        # Palabras clave
+        keywords = [
+            'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 
+            'def', 'del', 'elif', 'else', 'except', 'False', 'finally', 'for', 
+            'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'None', 
+            'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'True', 'try', 
+            'while', 'with', 'yield'
+        ]
+        
+        keyword_format = QTextCharFormat()
+        keyword_format.setForeground(QColor(self.colors.get("keyword", "#569CD6")))
+        keyword_format.setFontWeight(QFont.Bold)
+        self.rules.extend((rf'\b{kw}\b', keyword_format) for kw in keywords)
+
+        # Tipos incorporados
+        builtins = [
+            'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'breakpoint', 'bytearray',
+            'bytes', 'callable', 'chr', 'classmethod', 'compile', 'complex', 'dict',
+            'dir', 'divmod', 'enumerate', 'eval', 'filter', 'float', 'format',
+            'frozenset', 'getattr', 'globals', 'hasattr', 'hash', 'help', 'hex',
+            'id', 'input', 'int', 'isinstance', 'issubclass', 'iter', 'len', 'list',
+            'locals', 'map', 'max', 'memoryview', 'min', 'next', 'object', 'oct',
+            'open', 'ord', 'pow', 'print', 'property', 'range', 'repr', 'reversed',
+            'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str',
+            'sum', 'super', 'tuple', 'type', 'vars', 'zip'
+        ]
+        
+        builtin_format = QTextCharFormat()
+        builtin_format.setForeground(QColor("#4EC9B0"))
+        self.rules.extend((rf'\b{bi}\b', builtin_format) for bi in builtins)
+
+        # Strings (incluyendo f-strings)
+        string_format = QTextCharFormat()
+        string_format.setForeground(QColor(self.colors.get("string", "#CE9178")))
+        self.rules.extend([
+            (r'"[^"\\]*(\\.[^"\\]*)*"', string_format),
+            (r"'[^'\\]*(\\.[^'\\]*)*'", string_format),
+            (r'f"[^"\\]*(\\.[^"\\]*)*"', string_format),
+            (r"f'[^'\\]*(\\.[^'\\]*)*'", string_format)
+        ])
+
+        # Comentarios y docstrings
+        comment_format = QTextCharFormat()
+        comment_format.setForeground(QColor(self.colors.get("comment", "#6A9955")))
+        comment_format.setFontItalic(True)
+        self.rules.extend([
+            (r'#[^\n]*', comment_format),
+            (r'"""[^"]*"""', comment_format),
+            (r"'''[^']*'''", comment_format)
+        ])
+
+        # Números
+        number_format = QTextCharFormat()
+        number_format.setForeground(QColor(self.colors.get("number", "#B5CEA8")))
+        self.rules.append((r'\b[0-9]+\b', number_format))
+        self.rules.append((r'\b0[xX][0-9a-fA-F]+\b', number_format))  # Hex
+        self.rules.append((r'\b[0-9]+\.[0-9]+\b', number_format))     # Float
+
+        # Decoradores
+        decorator_format = QTextCharFormat()
+        decorator_format.setForeground(QColor("#C586C0"))
+        self.rules.append((r'@\w+', decorator_format))
+
+    def highlightBlock(self, text):
+        """Aplica el resaltado de sintaxis al bloque de texto"""
+        for pattern, fmt in self.rules:
+            expression = QRegularExpression(pattern)
+            matches = expression.globalMatch(text)
+            while matches.hasNext():
+                match = matches.next()
+                self.setFormat(match.capturedStart(), match.capturedLength(), fmt)
+
+
+class CodeEditor(QTextEdit):
+    """Editor de código mejorado con numeración de líneas"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setLineWrapMode(QTextEdit.NoWrap)
+        self.setAcceptRichText(False)
+        self.setCursorWidth(2)
+        
+        # Configuración inicial
+        self.line_number_area = LineNumberArea(self)
+        self.update_line_number_area_width(0)
+        
+        # Conexiones
+        self.blockCountChanged.connect(self.update_line_number_area_width)
+        self.updateRequest.connect(self.update_line_number_area)
+        
+    def line_number_area_width(self):
+        """Calcula el ancho necesario para el área de números de línea"""
+        digits = len(str(max(1, self.blockCount())))
+        space = 10 + self.fontMetrics().horizontalAdvance('9') * digits
+        return space
+    
+    def update_line_number_area_width(self, _):
+        """Actualiza el margen para los números de línea"""
+        self.setViewportMargins(self.line_number_area_width(), 0, 0, 0)
+    
+    def update_line_number_area(self, rect, dy):
+        """Actualiza el área de números de línea cuando se desplaza el editor"""
+        if dy:
+            self.line_number_area.scroll(0, dy)
+        else:
+            self.line_number_area.update(0, rect.y(), 
+                                      self.line_number_area.width(), rect.height())
+        
+        if rect.contains(self.viewport().rect()):
+            self.update_line_number_area_width(0)
+    
+    def resizeEvent(self, event):
+        """Maneja el redimensionamiento del editor"""
+        super().resizeEvent(event)
+        cr = self.contentsRect()
+        self.line_number_area.setGeometry(
+            cr.left(), cr.top(),
+            self.line_number_area_width(), cr.height())
+    
+    def lineNumberAreaPaintEvent(self, event):
+        """Pinta los números de línea"""
+        painter = QPainter(self.line_number_area)
+        painter.fillRect(event.rect(), QColor("#252526"))
+        
+        block = self.firstVisibleBlock()
+        block_number = block.blockNumber()
+        top = self.blockBoundingGeometry(block).translated(
+            self.contentOffset()).top()
+        bottom = top + self.blockBoundingRect(block).height()
+        
+        font = self.font()
+        font.setBold(False)
+        painter.setFont(font)
+        
+        while block.isValid() and top <= event.rect().bottom():
+            if block.isVisible() and bottom >= event.rect().top():
+                number = str(block_number + 1)
+                painter.setPen(QColor("#858585"))
+                painter.drawText(
+                    0, top, 
+                    self.line_number_area.width() - 5, 
+                    self.fontMetrics().height(),
+                    Qt.AlignRight, number)
+            
+            block = block.next()
+            top = bottom
+            bottom = top + self.blockBoundingRect(block).height()
+            block_number += 1
+
+
+class LineNumberArea(QWidget):
+    """Área de numeración de líneas para el editor"""
+    def __init__(self, editor):
+        super().__init__(editor)
+        self.editor = editor
+    
+    def sizeHint(self):
+        return QSize(self.editor.line_number_area_width(), 0)
+    
+    def paintEvent(self, event):
+        self.editor.lineNumberAreaPaintEvent(event)
+
+
+class PythonEditor(QMainWindow):
+    """Ventana principal del editor con mejoras visuales y funcionales"""
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Python Editor Pro")
+        self.setGeometry(100, 100, 1200, 800)
+        
+        # Configuración
+        self.config_manager = ConfigManager()
+        self.config = self.config_manager.load_config()
+        self.current_file = None
+        self.modified = False
+        
+        # Crear widgets y diseño
+        self.create_widgets()
+        self.create_actions()
+        self.create_menus()
+        self.create_toolbars()
+        self.create_statusbar()
+        self.create_layout()
+        self.create_connections()
+        
+        # Aplicar configuración
+        self.apply_settings()
+        
+        # Cargar archivo si se pasa como argumento
+        if len(sys.argv) > 1:
+            self.load_file(sys.argv[1])
+
+    def create_widgets(self):
+        """Crea los widgets principales"""
+        # Editor y panel de IA
+        self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        
+        # Pestaña de edición
+        self.editor_tab = QWidget()
+        self.editor_layout = QHBoxLayout(self.editor_tab)
+        self.editor_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.splitter = QSplitter(Qt.Horizontal)
+        
+        self.code_editor = CodeEditor()
+        self.code_editor.document().modificationChanged.connect(self.set_modified)
+        
+        self.ai_panel = QTextEdit()
+        self.ai_panel.setReadOnly(True)
+        self.ai_panel.setStyleSheet("background-color: #1E1E1E; color: #D4D4D4;")
+        
+        self.splitter.addWidget(self.code_editor)
+        self.splitter.addWidget(self.ai_panel)
+        self.splitter.setSizes([700, 300])
+        
+        self.editor_layout.addWidget(self.splitter)
+        self.tabs.addTab(self.editor_tab, "Editor")
+        
+        # Pestaña de configuración
+        self.config_tab = QWidget()
+        self.config_layout = QFormLayout(self.config_tab)
+        
+        self.default_dir_edit = QLineEdit()
+        self.btn_browse_dir = QPushButton("Examinar...")
+        self.btn_browse_dir.clicked.connect(self.browse_directory)
+        
+        dir_layout = QHBoxLayout()
+        dir_layout.addWidget(self.default_dir_edit)
+        dir_layout.addWidget(self.btn_browse_dir)
+        
+        self.ai_endpoint_edit = QLineEdit()
+        self.editor_font_edit = QLineEdit()
+        self.btn_select_font = QPushButton("Seleccionar...")
+        self.btn_select_font.clicked.connect(self.select_font)
+        
+        font_layout = QHBoxLayout()
+        font_layout.addWidget(self.editor_font_edit)
+        font_layout.addWidget(self.btn_select_font)
+        
+        self.font_size_edit = QLineEdit()
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["dark", "light", "blue"])
+        
+        self.ai_prompt_edit = QTextEdit()
+        self.ai_prompt_edit.setMinimumHeight(120)
+        
+        self.btn_save_config = QPushButton("Guardar Configuración")
+        self.btn_reset_config = QPushButton("Restablecer Valores por Defecto")
+        
+        self.config_layout.addRow("Directorio por defecto:", dir_layout)
+        self.config_layout.addRow("Endpoint IA:", self.ai_endpoint_edit)
+        self.config_layout.addRow("Fuente del editor:", font_layout)
+        self.config_layout.addRow("Tamaño de fuente:", self.font_size_edit)
+        self.config_layout.addRow("Tema:", self.theme_combo)
+        self.config_layout.addRow("Prompt IA:", self.ai_prompt_edit)
+        self.config_layout.addRow(self.btn_save_config)
+        self.config_layout.addRow(self.btn_reset_config)
+        
+        self.tabs.addTab(self.config_tab, "Configuración")
+        
+        # Pestaña de archivos recientes
+        self.recent_tab = QWidget()
+        self.recent_layout = QVBoxLayout(self.recent_tab)
+        
+        self.recent_list = QListWidget()
+        self.recent_list.itemDoubleClicked.connect(self.open_recent_file)
+        self.btn_clear_recent = QPushButton("Limpiar lista")
+        self.btn_clear_recent.clicked.connect(self.clear_recent_files)
+        
+        self.recent_layout.addWidget(QLabel("Archivos recientes:"))
+        self.recent_layout.addWidget(self.recent_list)
+        self.recent_layout.addWidget(self.btn_clear_recent)
+        
+        self.tabs.addTab(self.recent_tab, "Recientes")
+        self.update_recent_files_list()
+
+    def create_actions(self):
+        """Crea las acciones del menú"""
+        # Archivo
+        self.new_action = QAction("&Nuevo", self)
+        self.new_action.setShortcut(QKeySequence.New)
+        self.new_action.setStatusTip("Crear un nuevo archivo")
+        self.new_action.setIcon(QIcon.fromTheme("document-new"))
+        
+        self.open_action = QAction("&Abrir...", self)
+        self.open_action.setShortcut(QKeySequence.Open)
+        self.open_action.setStatusTip("Abrir un archivo existente")
+        self.open_action.setIcon(QIcon.fromTheme("document-open"))
+        
+        self.save_action = QAction("&Guardar", self)
+        self.save_action.setShortcut(QKeySequence.Save)
+        self.save_action.setStatusTip("Guardar el archivo actual")
+        self.save_action.setIcon(QIcon.fromTheme("document-save"))
+        
+        self.save_as_action = QAction("Guardar &como...", self)
+        self.save_as_action.setShortcut(QKeySequence.SaveAs)
+        self.save_as_action.setStatusTip("Guardar el archivo con un nombre diferente")
+        
+        self.close_action = QAction("&Cerrar", self)
+        self.close_action.setShortcut(QKeySequence.Close)
+        self.close_action.setStatusTip("Cerrar el archivo actual")
+        
+        self.exit_action = QAction("&Salir", self)
+        self.exit_action.setShortcut(QKeySequence.Quit)
+        self.exit_action.setStatusTip("Salir de la aplicación")
+        
+        # Edición
+        self.undo_action = QAction("&Deshacer", self)
+        self.undo_action.setShortcut(QKeySequence.Undo)
+        self.undo_action.setStatusTip("Deshacer la última acción")
+        
+        self.redo_action = QAction("&Rehacer", self)
+        self.redo_action.setShortcut(QKeySequence.Redo)
+        self.redo_action.setStatusTip("Rehacer la última acción deshecha")
+        
+        self.cut_action = QAction("Cor&tar", self)
+        self.cut_action.setShortcut(QKeySequence.Cut)
+        self.cut_action.setStatusTip("Cortar el texto seleccionado")
+        
+        self.copy_action = QAction("&Copiar", self)
+        self.copy_action.setShortcut(QKeySequence.Copy)
+        self.copy_action.setStatusTip("Copiar el texto seleccionado")
+        
+        self.paste_action = QAction("&Pegar", self)
+        self.paste_action.setShortcut(QKeySequence.Paste)
+        self.paste_action.setStatusTip("Pegar el texto del portapapeles")
+        
+        self.select_all_action = QAction("Seleccionar &todo", self)
+        self.select_all_action.setShortcut(QKeySequence.SelectAll)
+        self.select_all_action.setStatusTip("Seleccionar todo el texto")
+        
+        # Ejecución
+        self.run_action = QAction("&Ejecutar", self)
+        self.run_action.setShortcut("F5")
+        self.run_action.setStatusTip("Ejecutar el código actual")
+        self.run_action.setIcon(QIcon.fromTheme("system-run"))
+        
+        self.debug_action = QAction("&Depurar", self)
+        self.debug_action.setShortcut("F6")
+        self.debug_action.setStatusTip("Depurar el código actual")
+        
+        self.analyze_action = QAction("&Analizar con IA", self)
+        self.analyze_action.setShortcut("F7")
+        self.analyze_action.setStatusTip("Analizar el código con IA")
+        self.analyze_action.setIcon(QIcon.fromTheme("preferences-desktop-remote-desktop"))
+        
+        # Ayuda
+        self.about_action = QAction("&Acerca de...", self)
+        self.about_action.setStatusTip("Mostrar información sobre la aplicación")
+        
+        self.docs_action = QAction("&Documentación", self)
+        self.docs_action.setStatusTip("Abrir documentación en el navegador")
+
+    def create_menus(self):
+        """Crea los menús de la aplicación"""
+        menubar = self.menuBar()
+        
+        # Menú Archivo
+        file_menu = menubar.addMenu("&Archivo")
+        file_menu.addAction(self.new_action)
+        file_menu.addAction(self.open_action)
+        file_menu.addAction(self.save_action)
+        file_menu.addAction(self.save_as_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.close_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.exit_action)
+        
+        # Menú Edición
+        edit_menu = menubar.addMenu("&Edición")
+        edit_menu.addAction(self.undo_action)
+        edit_menu.addAction(self.redo_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.cut_action)
+        edit_menu.addAction(self.copy_action)
+        edit_menu.addAction(self.paste_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.select_all_action)
+        
+        # Menú Ejecutar
+        run_menu = menubar.addMenu("&Ejecutar")
+        run_menu.addAction(self.run_action)
+        run_menu.addAction(self.debug_action)
+        run_menu.addSeparator()
+        run_menu.addAction(self.analyze_action)
+        
+        # Menú Ayuda
+        help_menu = menubar.addMenu("A&yuda")
+        help_menu.addAction(self.docs_action)
+        help_menu.addSeparator()
+        help_menu.addAction(self.about_action)
+
+    def create_toolbars(self):
+        """Crea las barras de herramientas"""
+        # Barra de herramientas principal
+        self.toolbar = self.addToolBar("Principal")
+        self.toolbar.setIconSize(QSize(24, 24))
+        self.toolbar.setMovable(False)
+        
+        self.toolbar.addAction(self.new_action)
+        self.toolbar.addAction(self.open_action)
+        self.toolbar.addAction(self.save_action)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.run_action)
+        self.toolbar.addAction(self.analyze_action)
+        
+        # Barra de herramientas de edición
+        self.edit_toolbar = self.addToolBar("Edición")
+        self.edit_toolbar.addAction(self.undo_action)
+        self.edit_toolbar.addAction(self.redo_action)
+        self.edit_toolbar.addSeparator()
+        self.edit_toolbar.addAction(self.cut_action)
+        self.edit_toolbar.addAction(self.copy_action)
+        self.edit_toolbar.addAction(self.paste_action)
+
+    def create_statusbar(self):
+        """Crea la barra de estado"""
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        
+        # Etiquetas de estado
+        self.file_label = QLabel("Sin archivo")
+        self.file_label.setMinimumWidth(200)
+        self.status_bar.addWidget(self.file_label)
+        
+        self.pos_label = QLabel("Ln 1, Col 1")
+        self.pos_label.setMinimumWidth(100)
+        self.status_bar.addPermanentWidget(self.pos_label)
+        
+        self.modified_label = QLabel("")
+        self.status_bar.addPermanentWidget(self.modified_label)
+        
+        # Actualizar posición del cursor
+        self.code_editor.cursorPositionChanged.connect(self.update_cursor_position)
+
+    def create_layout(self):
+        """Configura el diseño principal"""
+        central_widget = QWidget()
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.addWidget(self.tabs)
+        self.setCentralWidget(central_widget)
+
+    def create_connections(self):
+        """Conecta señales y slots"""
+        # Archivo
+        self.new_action.triggered.connect(self.new_file)
+        self.open_action.triggered.connect(self.open_file)
+        self.save_action.triggered.connect(self.save_file)
+        self.save_as_action.triggered.connect(self.save_file_as)
+        self.close_action.triggered.connect(self.close_file)
+        self.exit_action.triggered.connect(self.close)
+        
+        # Edición
+        self.undo_action.triggered.connect(self.code_editor.undo)
+        self.redo_action.triggered.connect(self.code_editor.redo)
+        self.cut_action.triggered.connect(self.code_editor.cut)
+        self.copy_action.triggered.connect(self.code_editor.copy)
+        self.paste_action.triggered.connect(self.code_editor.paste)
+        self.select_all_action.triggered.connect(self.code_editor.selectAll)
+        
+        # Ejecución
+        self.run_action.triggered.connect(self.run_code)
+        self.analyze_action.triggered.connect(self.analyze_with_ai)
+        
+        # Configuración
+        self.btn_save_config.clicked.connect(self.save_config)
+        self.btn_reset_config.clicked.connect(self.reset_config)
+        
+        # Ayuda
+        self.about_action.triggered.connect(self.show_about)
+        self.docs_action.triggered.connect(self.open_docs)
+
+    def apply_settings(self):
+        """Aplica la configuración cargada"""
+        # Configuración del editor
+        font = QFont(
+            self.config.get("editor_font", "Monospace"),
+            int(self.config.get("font_size", 12))
+        )
+        self.code_editor.setFont(font)
+        self.editor_font_edit.setText(self.config.get("editor_font", ""))
+        self.font_size_edit.setText(str(self.config.get("font_size", "")))
+        
+        # Configuración de directorio y IA
+        self.default_dir_edit.setText(self.config.get("default_dir", ""))
+        self.ai_endpoint_edit.setText(self.config.get("ai_endpoint", ""))
+        
+        # Prompt de IA
+        self.ai_prompt_edit.setPlainText(self.config.get("ai_prompt", ""))
+        
+        # Tema
+        theme = self.config.get("theme", "dark")
+        self.theme_combo.setCurrentText(theme)
+        self.apply_theme(theme)
+        
+        # Colores de sintaxis
+        colors = self.config.get("syntax_colors", {})
+        self.code_editor.setStyleSheet(
+            f"background-color: {colors.get('background', '#1E1E1E')}; "
+            f"color: {colors.get('text', '#D4D4D4')};"
+        )
+        self.highlighter = PythonSyntaxHighlighter(self.code_editor.document(), colors)
+
+    def apply_theme(self, theme_name):
+        """Aplica un tema de color a la interfaz"""
+        if theme_name == "dark":
+            palette = QPalette()
+            palette.setColor(QPalette.Window, QColor(30, 30, 30))
+            palette.setColor(QPalette.WindowText, Qt.white)
+            palette.setColor(QPalette.Base, QColor(37, 37, 38))
+            palette.setColor(QPalette.AlternateBase, QColor(30, 30, 30))
+            palette.setColor(QPalette.ToolTipBase, Qt.white)
+            palette.setColor(QPalette.ToolTipText, Qt.white)
+            palette.setColor(QPalette.Text, Qt.white)
+            palette.setColor(QPalette.Button, QColor(30, 30, 30))
+            palette.setColor(QPalette.ButtonText, Qt.white)
+            palette.setColor(QPalette.BrightText, Qt.red)
+            palette.setColor(QPalette.Highlight, QColor(0, 122, 204))
+            palette.setColor(QPalette.HighlightedText, Qt.black)
+            QApplication.setPalette(palette)
+        elif theme_name == "light":
+            QApplication.setPalette(QApplication.style().standardPalette())
+        elif theme_name == "blue":
+            palette = QPalette()
+            palette.setColor(QPalette.Window, QColor(240, 240, 255))
+            palette.setColor(QPalette.WindowText, Qt.black)
+            palette.setColor(QPalette.Base, QColor(255, 255, 255))
+            palette.setColor(QPalette.AlternateBase, QColor(240, 240, 250))
+            palette.setColor(QPalette.ToolTipBase, Qt.white)
+            palette.setColor(QPalette.ToolTipText, Qt.white)
+            palette.setColor(QPalette.Text, Qt.black)
+            palette.setColor(QPalette.Button, QColor(240, 240, 255))
+            palette.setColor(QPalette.ButtonText, Qt.black)
+            palette.setColor(QPalette.BrightText, Qt.red)
+            palette.setColor(QPalette.Highlight, QColor(100, 149, 237))
+            palette.setColor(QPalette.HighlightedText, Qt.white)
+            QApplication.setPalette(palette)
+
+    def update_cursor_position(self):
+        """Actualiza la posición del cursor en la barra de estado"""
+        cursor = self.code_editor.textCursor()
+        line = cursor.blockNumber() + 1
+        col = cursor.columnNumber() + 1
+        self.pos_label.setText(f"Ln {line}, Col {col}")
+
+    def set_modified(self, modified):
+        """Actualiza el estado de modificación del archivo"""
+        self.modified = modified
+        self.modified_label.setText("*" if modified else "")
+        self.update_title()
+
+    def update_title(self):
+        """Actualiza el título de la ventana"""
+        title = "Python Editor Pro"
+        if self.current_file:
+            title = f"{Path(self.current_file).name} - {title}"
+            if self.modified:
+                title = f"*{title}"
+        self.setWindowTitle(title)
+
+    def update_recent_files_list(self):
+        """Actualiza la lista de archivos recientes"""
+        self.recent_list.clear()
+        recent_files = self.config.get("recent_files", [])
+        for file_path in recent_files:
+            if os.path.exists(file_path):
+                self.recent_list.addItem(file_path)
+
+    def new_file(self):
+        """Crea un nuevo archivo con plantilla"""
+        if self.check_save_changes():
+            file_name, ok = QInputDialog.getText(
+                self, "Nuevo archivo", 
+                "Nombre del archivo (sin extensión .py):"
+            )
+            if ok and file_name:
+                if not file_name.endswith('.py'):
+                    file_name += '.py'
+                
+                file_path = os.path.join(self.config["default_dir"], file_name)
+                
+                if os.path.exists(file_path):
+                    QMessageBox.warning(self, "Error", "El archivo ya existe")
+                    return
+                
+                try:
+                    # Plantilla básica
+                    template = f'''# -*- coding: utf-8 -*-
+\"\"\"
+{file_name}
+Creado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Autor: {os.getlogin()}
+\"\"\"
+
+def main():
+    \"\"\"Función principal\"\"\"
+    print("¡Hola, mundo!")
+
+
+if __name__ == "__main__":
+    main()
+'''
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(template)
+                    
+                    self.load_file(file_path)
+                    self.status_bar.showMessage(f"Archivo creado: {file_path}")
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"No se pudo crear el archivo: {str(e)}")
+
+    def open_file(self, file_path=None):
+        """Abre un archivo existente"""
+        if self.check_save_changes():
+            if not file_path:
+                file_path, _ = QFileDialog.getOpenFileName(
+                    self, "Abrir archivo", 
+                    self.config["default_dir"], 
+                    "Python Files (*.py);;All Files (*)"
+                )
+            
+            if file_path:
+                self.load_file(file_path)
+
+    def load_file(self, file_path):
+        """Carga el contenido de un archivo en el editor"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                self.code_editor.setPlainText(f.read())
+            
+            self.current_file = file_path
+            self.code_editor.document().setModified(False)
+            self.set_modified(False)
+            self.file_label.setText(file_path)
+            self.update_title()
+            
+            # Agregar a archivos recientes
+            self.config_manager.add_recent_file(file_path)
+            self.update_recent_files_list()
+            
+            self.status_bar.showMessage(f"Archivo cargado: {file_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo abrir el archivo: {str(e)}")
+
+    def save_file(self):
+        """Guarda el archivo actual"""
+        if not self.current_file:
+            self.save_file_as()
+            return
+        
+        try:
+            with open(self.current_file, 'w', encoding='utf-8') as f:
+                f.write(self.code_editor.toPlainText())
+            
+            self.code_editor.document().setModified(False)
+            self.set_modified(False)
+            self.status_bar.showMessage(f"Archivo guardado: {self.current_file}")
+            return True
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo guardar el archivo: {str(e)}")
+            return False
+
+    def save_file_as(self):
+        """Guarda el archivo con un nuevo nombre"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Guardar archivo", 
+            self.config["default_dir"], 
+            "Python Files (*.py);;All Files (*)"
+        )
+        
+        if file_path:
+            if not file_path.endswith('.py'):
+                file_path += '.py'
+            
+            if self._save_to_file(file_path):
+                self.current_file = file_path
+                self.file_label.setText(file_path)
+                self.update_title()
+                self.config_manager.add_recent_file(file_path)
+                self.update_recent_files_list()
+                return True
+        return False
+
+    def _save_to_file(self, file_path):
+        """Intenta guardar el contenido en un archivo"""
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(self.code_editor.toPlainText())
+            return True
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo guardar el archivo: {str(e)}")
+            return False
+
+    def close_file(self):
+        """Cierra el archivo actual"""
+        if self.check_save_changes():
+            self.code_editor.clear()
+            self.current_file = None
+            self.file_label.setText("Sin archivo")
+            self.set_modified(False)
+            self.update_title()
+            self.status_bar.showMessage("Archivo cerrado")
+
+    def close_tab(self, index):
+        """Cierra una pestaña"""
+        if index != 0:  # No permitir cerrar la pestaña del editor
+            self.tabs.removeTab(index)
+
+    def check_save_changes(self):
+        """Verifica si hay cambios sin guardar y pregunta al usuario"""
+        if self.code_editor.document().isModified():
+            reply = QMessageBox.question(
+                self, 'Guardar cambios',
+                '¿Desea guardar los cambios antes de continuar?',
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            
+            if reply == QMessageBox.Save:
+                return self.save_file()
+            elif reply == QMessageBox.Cancel:
+                return False
+        return True
+
+    def run_code(self):
+        """Ejecuta el código Python actual"""
+        if not self.current_file:
+            if not self.save_file():  # Guardar si es un nuevo archivo
+                return
+        
+        try:
+            # Asegurarse de que el archivo está guardado
+            if self.code_editor.document().isModified():
+                self.save_file()
+            
+            # Comando para ejecutar en terminal (Linux)
+            if sys.platform == 'linux':
+                command = f"python3 '{self.current_file}'; echo; read -p 'Presiona Enter para salir...'"
+                subprocess.Popen([
+                    "xfce4-terminal",
+                    "--hold",
+                    "--command=bash -c '{}'".format(command)
+                ])
+            elif sys.platform == 'win32':
+                # Windows - usar cmd.exe
+                subprocess.Popen([
+                    "cmd.exe", "/k", 
+                    f"python \"{self.current_file}\"
+                    

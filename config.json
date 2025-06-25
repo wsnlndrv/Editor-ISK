@@ -1,0 +1,16 @@
+{
+    "lm_studio": {
+        "endpoint": "http://localhost:8080/v1/chat/completions",
+        "api_key": "",
+        "selected_endpoint_type": 0
+    },
+    "editor": {
+        "font": "",
+        "default_directory": "/home/wsn/Escritorio/Editor",
+        "theme": "dark"
+    },
+    "prompts": {
+        "selected_prompt": 0,
+        "custom_prompt": "Analiza este c\u00f3digo Python y sugiere mejoras:"
+    }
+}
