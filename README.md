@@ -33,8 +33,8 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 
 ## ⚠️ **Disclaimer honesto**
 ```diff
-- Los modelos locales ≠ ChatGPT-4o (son como un tamagotchi: requieren cuidados)
-- GPU vieja? Usa modelos pequeños (este va bien con GTX 1070/Tesla T4)
+- Los modelos locales ≠ DeepSeek V3 (son como un tamagotchi: requieren cuidados)
+- GPU vieja? Usa modelos pequeños (Mínimo recomendable ¿8Gb Vram?)
 - ¿Bugs? ¡Feature no documentada! 🐞☕
 - ¿Interfaz spartana? Así cargamos más rápido 🚀
 
