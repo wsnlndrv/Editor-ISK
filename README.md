@@ -38,10 +38,11 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 ## 🧪 **Especificaciones Técnicas (más o menos)**
 ```diff
 ! ADVERTENCIA EPIC:
-- Los modelos locales ≠ DeepSeek V3 
+
+Los modelos locales ≠ DeepSeek V3 
   (son como tamagotchis: si no los cuidas, se mueren)
-- GPU antigua? Modelos pequeños (8GB VRAM mínimo)
-- ¿Interfaz espartana? ¡Feature de optimización! 🚀
+GPU antigua? Modelos pequeños (8GB VRAM mínimo)
+¿Interfaz espartana? ¡Feature de optimización! 🚀
 
 def main():
     # Fase 1: Crisis existencial
