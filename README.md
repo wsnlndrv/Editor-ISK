@@ -10,7 +10,8 @@ Como soy torpe aprendiendo a usar las herramientas de otros y no he podido añad
 
 Para que funcione como debe, tendras que tener instalado LM Studio -> https://lmstudio.ai/download  
 
-Luego tendras que descargar un modelo que tenga alguna competencia en programación, por ejemplo -> deepseek-coder-6.7b-instruct.Q4_K_M o alguno mejor si tu GPU lo soporta.
+Luego tendras que descargar un modelo que tenga alguna competencia en programación, por ejemplo ->  
+deepseek-coder-6.7b-instruct.Q4_K_M o alguno mejor si tu GPU lo soporta. ->> https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF/tree/main  
 
 Hay que activar el servidor API de LM Studio que por defecto trabaja en (http://localhost:1234/v1/chat/completions) -> Comprueba el puerto, en mi caso 8080.
 
