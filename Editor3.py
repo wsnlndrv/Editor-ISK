@@ -1,12 +1,24 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 # Editor ISK - Un editor de código con IA local
-# Copyright (C) 2024 Tu Nombre <tu@email.com>
+# Copyright (C) 2025 wsnlndr wsnlndr@protonmail.com>
+##################################################################################
+# Este programa es software libre: puedes redistribuirlo y/o modificarlo
+# bajo los términos de la GNU General Public License publicada por
+# la Free Software Foundation, ya sea la versión 3 de la Licencia, o
+# (a tu elección) cualquier versión posterior.
 #
+# Este programa se distribuye con la esperanza de que sea útil,
+# pero SIN NINGUNA GARANTÍA; sin siquiera la garantía implícita de
+# COMERCIALIZACIÓN o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Consulta la
+# GNU General Public License para más detalles.
+#
+# Deberías haber recibido una copia de la GNU General Public License
+# junto con este programa. Si no es así, visita <https://www.gnu.org/licenses/>.
+##################################################################################
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
