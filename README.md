@@ -15,4 +15,5 @@ Hay que activar el servidor API de LM Studio que por defecto trabaja en localhos
 
 Luego ya podras iniciar el editor (usa la terminal de XFCE por defecto) y pedir recomendaciones al modelo a partir de un Prompt preconfigurado.  
 
-![Captura de mi editor de código]([https://github.com/tu-usuario/tu-repositorio/blob/main/images/captura.png](https://github.com/wsnlndrv/Editor-ISK/blob/main/Capturas/captura_20250625_044446.png)?raw=true)
+
+![Captura de mi editor de código]([https://github.com/wsnlndrv/Editor-ISK/edit/blob/main/images/captura.png](https://github.com/wsnlndrv/Editor-ISK/blob/main/Capturas/captura_20250625_044446.png)?raw=true)
