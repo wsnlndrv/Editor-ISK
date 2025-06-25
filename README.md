@@ -39,7 +39,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 ## 🧪 **Especificaciones Técnicas (más o menos)**
 ```diff
 ! ADVERTENCIA EPIC:
-! Los modelos locales ≠ DeepSeek V3 (son como tamagotchis: si no los cuidas, se mueren)
+! Los modelos locales NO son como DeepSeek V3 (son como tamagotchis: si no los cuidas, se mueren)
 ! GPU antigua? Modelos pequeños (8GB VRAM mínimo)
 ! ¿Interfaz espartana? ¡Feature de optimización! 🚀
 
