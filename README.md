@@ -17,7 +17,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 1. **Instala [LM Studio](https://lmstudio.ai/download)** (Win/Linux/Mac)
 2. **Descarga un modelo GGUF** como:  
    [`deepseek-coder-6.7b-instruct.Q4_K_M`](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) (8GB VRAM mínimo)
-   Si tienes una RTX Pro Turbo Intercoller 7090 o 8090 Vas sobrado seguro.
+   Con una RTX Bi-Turbo Intercoller 7090 del año 2029 Vas sobrado.
 4. **Prende el servidor API** (puerto `8080` por defecto)
 5. **¡Arranca el editor!** (Terminal XFCE incluida de serie... En el S.O.)
 
