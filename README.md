@@ -42,7 +42,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 ! GPU antigua? Modelos pequeños (8GB VRAM mínimo)
 ! ¿Interfaz espartana? ¡Feature de optimización! 🚀
 
-'''
+'''python
 def main():
     # Fase 1: Crisis existencial
     if not puede_instalar_IA_en_Geany():
