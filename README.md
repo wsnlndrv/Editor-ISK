@@ -36,6 +36,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 
 ---
 
+## 🧪 **Especificaciones Técnicas (más o menos)**
 ```python
 # Editor-ISK Core: ¡Código con personalidad!
 def main():
@@ -97,59 +98,3 @@ def main():
 # "El código perfecto no existe... pero el que pasa los tests sirve"
 # (A veces ni eso)
 ```
-
-
-
-## 🧪 **Especificaciones Técnicas (más o menos)**
-```diff
-! ADVERTENCIA EPIC:
-! Los modelos locales NO son como DeepSeek V3 (son como tamagotchis: si no los cuidas, se mueren)
-! GPU antigua? Modelos pequeños (8GB VRAM mínimo)
-! ¿Interfaz espartana? ¡Feature de optimización! 🚀
-
-
-def main():
-    # Fase 1: Crisis existencial
-    if not puede_instalar_IA_en_Geany():
-        proyecto = hacer_editor_propio(
-            cafeína=0xCAFE,          # Hexadecimal para parecer hacker
-            bugs="features",         # Marketing 101
-            deuda_técnica=9999       # Future Me's problem
-        )
-    else:
-        print("Aburrido... ¡Hackeemos el kernel entonces!")
-        proyecto = "linux-next"      # Por si acaso
-
-    # Fase 2: Desarrollo real (aka. "el infierno")
-    while not proyecto.estable:
-        cafeína *= 1.61803398875     # Proporción áurea del café
-        
-        if bug := next((b for b in proyecto.bugs if b.crítico), None):
-            maldecir(bug, idioma="español antiguo")  # Más efectivo
-            proyecto.parches.append(
-                Parche(título="Fix mágico", 
-                       descripción="Ya no crashea... mucho")
-            )
-        else:
-            commit(
-                mensaje="¡Funciona! (en mi máquina)",
-                fuerza=True,          # --force es mi amor verdadero
-                hora="03:42 AM",
-                emoción="euforia irracional"
-            )
-        
-        # Post-mortem debugging
-        if "GPT de la pradera" in proyecto.colaboradores:
-            print("¡ALERTA! Posible rm -rf /* camuflado")
-            proyecto.sandbox_mode = True  # Por si las moscas
-
-    # Fase 3: Lanzamiento (aka. "arrepentimiento público")    
-    return Proyecto(
-        nombre="Editor-ISK", 
-        versión="0.1.1-alpha-preview-nightly",
-        soporte_vital=42  # Horas de sueño perdidas
-    )
-
-
-# Corolario Zen:
-# "El código perfecto no existe... pero el que compila sirve"
