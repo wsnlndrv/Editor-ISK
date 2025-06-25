@@ -42,7 +42,7 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 ! GPU antigua? Modelos pequeños (8GB VRAM mínimo)
 ! ¿Interfaz espartana? ¡Feature de optimización! 🚀
 
-'''python
+```python
 def main():
     # Fase 1: Crisis existencial
     if not puede_instalar_IA_en_Geany():
@@ -84,7 +84,7 @@ def main():
         versión="0.1.1-alpha-preview-nightly",
         soporte_vital=42  # Horas de sueño perdidas
     )
-'''
+```
 
 # Corolario Zen:
 # "El código perfecto no existe... pero el que compila sirve"
