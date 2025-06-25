@@ -1,4 +1,4 @@
-# Editor-ISK
+# Editor-ISK  --> V. 0.1
 
 ## Editor básico para Python con soporte para la asistencia de IA via LM Studio
 
