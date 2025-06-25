@@ -42,47 +42,51 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 ! GPU antigua? Modelos pequeños (8GB VRAM mínimo)
 ! ¿Interfaz espartana? ¡Feature de optimización! 🚀
 
-def main():
-    # Fase 1: Crisis existencial
-    if not puede_instalar_IA_en_Geany():
-        proyecto = hacer_editor_propio(
-            cafeína=0xCAFE,          # Hexadecimal para parecer hacker
-            bugs="features",         # Marketing 101
-            deuda_técnica=9999       # Future Me's problem
-        )
-    else:
-        print("Aburrido... ¡Hackeemos el kernel entonces!")
-        proyecto = "linux-next"      # Por si acaso
-
-    # Fase 2: Desarrollo real (aka. "el infierno")
-    while not proyecto.estable:
-        cafeína *= 1.61803398875     # Proporción áurea del café
-        
-        if bug := next((b for b in proyecto.bugs if b.crítico), None):
-            maldecir(bug, idioma="español antiguo")  # Más efectivo
-            proyecto.parches.append(
-                Parche(título="Fix mágico", 
-                       descripción="Ya no crashea... mucho")
-            )
-        else:
-            commit(
-                mensaje="¡Funciona! (en mi máquina)",
-                fuerza=True,          # --force es mi amor verdadero
-                hora="03:42 AM",
-                emoción="euforia irracional"
-            )
-        
-        # Post-mortem debugging
-        if "GPTeador de la pradera" in proyecto.colaboradores:
-            print("¡ALERTA! Posible rm -rf /* camuflado")
-            proyecto.sandbox_mode = True  # Por si las moscas
-
-    # Fase 3: Lanzamiento (aka. "arrepentimiento público")    
-    return Proyecto(
-        nombre="Editor-ISK", 
-        versión="0.1.1-alpha-preview-nightly",
-        soporte_vital=42  # Horas de sueño perdidas
-    )
+<div style="background: #1e1e1e; color: #d4d4d4; font-family: 'Courier New', monospace; padding: 15px; border-radius: 8px; border: 1px solid #444; line-height: 1.5;">
+<span style="color: #569cd6;">def</span> <span style="color: #dcdcaa;">main</span>():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Fase 1: Crisis existencial</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">if not</span> <span style="color: #dcdcaa;">puede_instalar_IA_en_Geany</span>():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">proyecto</span> = <span style="color: #dcdcaa;">hacer_editor_propio</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">cafeína</span>=<span style="color: #b5cea8;">0xCAFE</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Hexadecimal para parecer hacker</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">bugs</span>=<span style="color: #ce9178;">"features"</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Marketing 101</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">deuda_técnica</span>=<span style="color: #b5cea8;">9999</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Future Me's problem</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #dcdcaa;">print</span>(<span style="color: #ce9178;">"Aburrido... ¡Hackeemos el kernel entonces!"</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">proyecto</span> = <span style="color: #ce9178;">"linux-next"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Por si acaso</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Fase 2: Desarrollo real (aka. 'el infierno')</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">while not</span> <span style="color: #9cdcfe;">proyecto</span>.<span style="color: #9cdcfe;">estable</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">cafeína</span> *= <span style="color: #b5cea8;">1.61803398875</span>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Proporción áurea del café</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">if</span> <span style="color: #9cdcfe;">bug</span> := <span style="color: #dcdcaa;">next</span>((<span style="color: #9cdcfe;">b</span> <span style="color: #569cd6;">for</span> <span style="color: #9cdcfe;">b</span> <span style="color: #569cd6;">in</span> <span style="color: #9cdcfe;">proyecto</span>.<span style="color: #9cdcfe;">bugs</span> <span style="color: #569cd6;">if</span> <span style="color: #9cdcfe;">b</span>.<span style="color: #9cdcfe;">crítico</span>), <span style="color: #569cd6;">None</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #dcdcaa;">maldecir</span>(<span style="color: #9cdcfe;">bug</span>, <span style="color: #9cdcfe;">idioma</span>=<span style="color: #ce9178;">"español antiguo"</span>)&nbsp;&nbsp;<span style="color: #6a9955;"># Más efectivo</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">proyecto</span>.<span style="color: #9cdcfe;">parches</span>.<span style="color: #dcdcaa;">append</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #dcdcaa;">Parche</span>(<span style="color: #9cdcfe;">título</span>=<span style="color: #ce9178;">"Fix mágico"</span>, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">descripción</span>=<span style="color: #ce9178;">"Ya no crashea... mucho"</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #dcdcaa;">commit</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">mensaje</span>=<span style="color: #ce9178;">"¡Funciona! (en mi máquina)"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">fuerza</span>=<span style="color: #569cd6;">True</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># --force es mi amor verdadero</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">hora</span>=<span style="color: #ce9178;">"03:42 AM"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">emoción</span>=<span style="color: #ce9178;">"euforia irracional"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Post-mortem debugging</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">if</span> <span style="color: #ce9178;">"GPTeador de la pradera"</span> <span style="color: #569cd6;">in</span> <span style="color: #9cdcfe;">proyecto</span>.<span style="color: #9cdcfe;">colaboradores</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #dcdcaa;">print</span>(<span style="color: #ce9178;">"¡ALERTA! Posible rm -rf /* camuflado"</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">proyecto</span>.<span style="color: #9cdcfe;">sandbox_mode</span> = <span style="color: #569cd6;">True</span>&nbsp;&nbsp;<span style="color: #6a9955;"># Por si las moscas</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #6a9955;"># Fase 3: Lanzamiento (aka. 'arrepentimiento público')</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #569cd6;">return</span> <span style="color: #dcdcaa;">Proyecto</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">nombre</span>=<span style="color: #ce9178;">"Editor-ISK"</span>, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">versión</span>=<span style="color: #ce9178;">"0.1.1-alpha-preview-nightly"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9cdcfe;">soporte_vital</span>=<span style="color: #b5cea8;">42</span>&nbsp;&nbsp;<span style="color: #6a9955;"># Horas de sueño perdidas</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+<br>
+<span style="color: #6a9955;"># Corolario Zen:</span><br>
+<span style="color: #6a9955;"># "El código perfecto no existe... pero el que compila sirve"</span>
+</div>
 
 # Corolario Zen:
 # "El código perfecto no existe... pero el que compila sirve"
