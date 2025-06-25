@@ -15,7 +15,7 @@ deepseek-coder-6.7b-instruct.Q4_K_M o alguno mejor si tu GPU lo soporta. ->> htt
 
 Hay que activar el servidor API de LM Studio que por defecto trabaja en (http://localhost:1234/v1/chat/completions) -> Comprueba el puerto, en mi caso 8080.
 
-Luego ya podras iniciar el editor (usa la terminal de XFCE por defecto, cambiala por otra si es el caso) 
+Luego ya podras iniciar el editor (usa la terminal de XFCE por defecto, pero se puede cambiar por otra si eso) 
 y ya podrías recibir recomendaciones del modelo a partir de un Prompt preconfigurado.  
 
 No esperes grandes hazañas de un modelo local cuantizado.  
