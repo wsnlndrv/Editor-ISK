@@ -20,6 +20,10 @@ Este editor es mi experimento para tener un asistente de código **offline**, co
 3. **Prende el servidor API** (puerto `8080` por defecto)
 4. **¡Arranca el editor!** (Terminal XFCE incluida de serie)
 
+📜 Licencia ⚖️
+[![Licencia GPLv3](https://img.shields.io/badge/⚖️_Licencia-GPLv3-important)](LICENSE)
+[![Made with](https://img.shields.io/badge/Hecho_con-5%25_paciencia-ff69b4)](https://github.com/wsnlndrv)
+[![GPU](https://img.shields.io/badge/GPU-8GB%2B-orange)](https://lmstudio.ai)
 ---
 
 ## 📸 **Vista previa**
@@ -44,14 +48,6 @@ def main():
     else:
         print("Aburrido... ¡Hackeemos algo!")
         
-    # P.D.: Cuidado con el 'GPTador de la pradera'
-    # No sea que te cuelen un 'sudo rm -rf /* --no-preserve-root' 😱
-
-📜 Licencia ⚖️
-[![Licencia GPLv3](https://img.shields.io/badge/⚖️_Licencia-GPLv3-important)](LICENSE)
-[![Made with](https://img.shields.io/badge/Hecho_con-5%25_paciencia-ff69b4)](https://github.com/wsnlndrv)
-[![GPU](https://img.shields.io/badge/GPU-8GB%2B-orange)](https://lmstudio.ai)
-
 *"El editor que nadie pidió... pero que todos merecíamos"*  
 
 «Hecho en Linux con amor, bugs incluidos sin cargo extra»
@@ -66,3 +62,6 @@ while not editor_perfecto:
         maldecir(bug)
     else:
         commit("¡Funciona... por ahora!")
+
+    # P.D.: Cuidado con el 'GPTeador de la pradera'
+    # No sea que te cuelen un 'sudo rm -rf /* --no-preserve-root' 😱
