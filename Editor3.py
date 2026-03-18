@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Editor ISK - Un editor de código con IA local
-# Copyright (C) 2025 wsnlndr wsnlndr@protonmail.com>
+# Editor ISK - Un editor de código con IA
+# Copyright (C) 2025 iskdr
 ##################################################################################
 # Este programa es software libre: puedes redistribuirlo y/o modificarlo
 # bajo los términos de la GNU General Public License publicada por
@@ -35,22 +35,23 @@ import json
 import tempfile
 import subprocess
 import requests
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                               QTabWidget, QTextEdit, QPushButton, QLabel, QLineEdit,
-                               QFileDialog, QMessageBox, QToolBar, QSplitter, QFontDialog,
-                               QPlainTextEdit, QScrollArea, QGroupBox, QFormLayout, QComboBox)
-from PySide6.QtCore import Qt, QFile, QSaveFile, QSettings, Signal, QRegularExpression, QThread, QSize
-from PySide6.QtGui import (QFont, QTextCursor, QSyntaxHighlighter, QTextCharFormat, 
-                          QColor, QTextDocument, QAction, QPainter, QTextFormat,
-                          QPalette, QIcon)
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                             QTabWidget, QTextEdit, QPushButton, QLabel, QLineEdit,
+                             QFileDialog, QMessageBox, QToolBar, QSplitter, QFontDialog,
+                             QPlainTextEdit, QScrollArea, QGroupBox, QFormLayout, QComboBox,
+                             QMenuBar, QStyle, QMenu)
+from PyQt6.QtCore import Qt, QFile, QSaveFile, QSettings, pyqtSignal as Signal, QRegularExpression, QThread, QSize, QTimer
+from PyQt6.QtGui import (QFont, QTextCursor, QSyntaxHighlighter, QTextCharFormat, 
+                         QColor, QTextDocument, QAction, QPainter, QTextFormat,
+                         QPalette, QIcon, QKeySequence)
 
 class ConfigManager:
     """Gestor de configuración mejorado con soporte JSON"""
     def __init__(self):
-        self.settings = QSettings("MiEditor", "PythonCodeEditorPro")
+        self.settings = QSettings("Editor", "PythonCodeEditorPro")
         self.default_config = {
             'lm_studio': {
-                'endpoint': "http://localhost:8080/v1/chat/completions",
+                'endpoint': "https://api.groq.com/openai/v1/chat/completions",
                 'api_key': "",
                 'selected_endpoint_type': 0
             },
@@ -145,15 +146,15 @@ class LineNumberArea(QWidget):
     def sizeHint(self):
         return QSize(self.editor.line_number_area_width(), 0)
 
-    def paintEvent(self, event):
-        self.editor.line_number_area_paint_event(event)
+    def paintEvent(self, a0):
+        self.editor.line_number_area_paint_event(a0)
 
 class CodeEditor(QPlainTextEdit):
     """Editor de código con números de línea y resaltado mejorado"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.line_number_area = LineNumberArea(self)
-        self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
         self.update_line_number_area_width(0)
@@ -182,9 +183,9 @@ class CodeEditor(QPlainTextEdit):
         else:
             self.line_number_area.update(0, rect.y(), self.line_number_area.width(), rect.height())
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, e):
         """Redimensiona el área de números de línea"""
-        super().resizeEvent(event)
+        super().resizeEvent(e)
         cr = self.contentsRect()
         self.line_number_area.setGeometry(cr.left(), cr.top(), self.line_number_area_width(), cr.height())
 
@@ -202,9 +203,9 @@ class CodeEditor(QPlainTextEdit):
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
                 painter.setPen(QColor("#858585"))
-                painter.drawText(0, top, self.line_number_area.width() - 5, 
+                painter.drawText(0, int(top), self.line_number_area.width() - 5, 
                                 self.fontMetrics().height(),
-                                Qt.AlignRight, number)
+                                int(Qt.AlignmentFlag.AlignRight), number)
 
             block = block.next()
             top = bottom
@@ -219,7 +220,7 @@ class PythonSyntaxHighlighter(QSyntaxHighlighter):
         # Palabras clave
         self.keyword_format = QTextCharFormat()
         self.keyword_format.setForeground(QColor("#569cd6"))
-        self.keyword_format.setFontWeight(QFont.Bold)
+        self.keyword_format.setFontWeight(QFont.Weight.Bold)
         
         # Auto completado de corchetes/llaves
         self.bracket_format = QTextCharFormat()
@@ -275,64 +276,39 @@ class AIWorker(QThread):
     """Hilo para procesamiento de IA sin bloquear la UI"""
     analysis_complete = Signal(dict)
     
-    def __init__(self, endpoint, code, prompt, api_key=None, endpoint_type=0):
+    def __init__(self, code, prompt, api_key, model):
         super().__init__()
-        self.endpoint = endpoint
         self.code = code
         self.prompt = prompt
         self.api_key = api_key
-        self.endpoint_type = endpoint_type  # 0=chat, 1=completions, 2=models
+        self.model = model
     
     def run(self):
-        """Envía la solicitud a la API de IA"""
+        """Envía la solicitud a Groq API"""
         try:
-            headers = {"Content-Type": "application/json"}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}"
+            }
             
-            if self.endpoint_type == 2:  # GET /models
-                response = requests.get(self.endpoint, headers=headers, timeout=30)
-                result = response.json()
-                
-                if response.status_code == 200:
-                    models = "\n".join([m['id'] for m in result.get('data', [])])
-                    self.analysis_complete.emit({
-                        'status': 'success',
-                        'analysis': f"Modelos disponibles:\n{models}",
-                        'example': ""
-                    })
-                else:
-                    self.analysis_complete.emit({
-                        'status': 'error',
-                        'message': f"Error {response.status_code}: {result.get('error', {}).get('message', 'Error desconocido')}"
-                    })
-                return
+            payload = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": "Eres un asistente de programación Python. Responde en español."},
+                    {"role": "user", "content": f"{self.prompt}\n\n{self.code}"}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 4096
+            }
             
-            # Preparar payload según tipo de endpoint
-            if self.endpoint_type == 0:  # chat/completions
-                payload = {
-                    "messages": [
-                        {"role": "system", "content": "Eres un asistente de programación Python."},
-                        {"role": "user", "content": f"{self.prompt}\n\n{self.code}"}
-                    ],
-                    "temperature": 0.7,
-                    "max_tokens": 3096
-                }
-            else:  # completions
-                payload = {
-                    "prompt": f"{self.prompt}\n\n{self.code}",
-                    "temperature": 0.7,
-                    "max_tokens": 3096
-                }
-            
-            response = requests.post(self.endpoint, json=payload, headers=headers, timeout=30)
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                json=payload, headers=headers, timeout=60
+            )
             result = response.json()
             
             if response.status_code == 200:
-                if self.endpoint_type == 0:  # chat/completions
-                    analysis = result.get("choices", [{}])[0].get("message", {}).get("content", "No se recibió respuesta válida")
-                else:  # completions
-                    analysis = result.get("choices", [{}])[0].get("text", "No se recibió respuesta válida")
+                analysis = result.get("choices", [{}])[0].get("message", {}).get("content", "No se recibió respuesta válida")
                 
                 self.analysis_complete.emit({
                     'status': 'success',
@@ -340,9 +316,10 @@ class AIWorker(QThread):
                     'example': self.extract_code_example(analysis)
                 })
             else:
+                error_msg = result.get('error', {}).get('message', 'Error desconocido')
                 self.analysis_complete.emit({
                     'status': 'error',
-                    'message': f"Error {response.status_code}: {result.get('error', {}).get('message', 'Error desconocido')}"
+                    'message': f"Error {response.status_code}: {error_msg}"
                 })
         except Exception as e:
             self.analysis_complete.emit({
@@ -378,7 +355,7 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         
         # Splitter principal
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
         
         # Editor de código
@@ -387,9 +364,9 @@ class MainWindow(QMainWindow):
         splitter.addWidget(self.editor)
         
         # Panel lateral
-        side_panel = QTabWidget()
-        side_panel.setMinimumWidth(250)
-        splitter.addWidget(side_panel)
+        self.side_panel = QTabWidget()
+        self.side_panel.setMinimumWidth(250)
+        splitter.addWidget(self.side_panel)
         # Configuración inicial de tamaños de los marcos
         splitter.setSizes([int(self.width() * 0.9), int(self.width() * 0.1)])
         
@@ -407,10 +384,10 @@ class MainWindow(QMainWindow):
         ai_layout.addWidget(QLabel("Ejemplo mejorado:"))
         ai_layout.addWidget(self.ai_example)
         
-        side_panel.addTab(ai_tab, "Asistente IA")
+        self.side_panel.addTab(ai_tab, "Asistente IA")
         
         # Pestaña de configuración mejorada
-        side_panel.addTab(self.setup_config_tab(), "Configuración")
+        self.side_panel.addTab(self.setup_config_tab(), "Configuración")
         
         # Barra de herramientas
         self.setup_toolbar()
@@ -421,9 +398,18 @@ class MainWindow(QMainWindow):
         config_tab = QWidget()
         config_layout = QVBoxLayout(config_tab)
         
-        # Grupo para configuración de LM Studio
-        lm_group = QGroupBox("Configuración LM Studio")
+        # Grupo para configuración de Groq
+        lm_group = QGroupBox("Configuración Groq API")
         lm_layout = QFormLayout()
+        
+        self.model_combo = QComboBox()
+        self.model_combo.addItems([
+            "llama-3.3-70b-versatile (Rápido, 70B params)",
+            "llama-3.1-8b-instant (Muy rápido, 8B params)",
+            "mixtral-8x7b-32768 (Balanceado)",
+            "gemma2-9b-it (Compacto)"
+        ])
+        lm_layout.addRow("Modelo:", self.model_combo)
         
         self.endpoint_type_combo = QComboBox()
         self.endpoint_type_combo.addItems([
@@ -433,13 +419,14 @@ class MainWindow(QMainWindow):
         lm_layout.addRow("Tipo de Endpoint:", self.endpoint_type_combo)
         
         self.ai_endpoint_input = QLineEdit()
-        self.ai_endpoint_input.setPlaceholderText("http://localhost:8080/v1/...")
-        lm_layout.addRow("Endpoint completo:", self.ai_endpoint_input)
+        self.ai_endpoint_input.setPlaceholderText("https://api.groq.com/openai/v1/chat/completions")
+        self.ai_endpoint_input.setEnabled(False)
+        lm_layout.addRow("Endpoint:", self.ai_endpoint_input)
         
         self.api_key_input = QLineEdit()
-        self.api_key_input.setPlaceholderText("Opcional para LM Studio")
-        self.api_key_input.setEchoMode(QLineEdit.Password)
-        lm_layout.addRow("API Key:", self.api_key_input)
+        self.api_key_input.setPlaceholderText("gsk_... (obtén una en console.groq.com)")
+        self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
+        lm_layout.addRow("API Key Groq:", self.api_key_input)
         
         self.test_connection_btn = QPushButton("Probar conexión")
         self.test_connection_btn.clicked.connect(self.test_ai_connection)
@@ -508,52 +495,63 @@ class MainWindow(QMainWindow):
     def setup_menu(self):
         """Configura el menú principal"""
         menubar = self.menuBar()
+        if menubar is None:
+            menubar = QMenuBar(self)
+            self.setMenuBar(menubar)
         
         # Menú Archivo
         file_menu = menubar.addMenu("&Archivo")
-        file_menu.addAction("Nuevo", self.new_file, "Ctrl+N")
-        file_menu.addAction("Abrir...", self.open_file, "Ctrl+O")
-        file_menu.addAction("Guardar", self.save_file, "Ctrl+S")
-        file_menu.addAction("Guardar como...", self.save_file_as, "Ctrl+Shift+S")
+        action = QAction("Nuevo", self)
+        action.triggered.connect(self.new_file)
+        action.setShortcut(QKeySequence("Ctrl+N"))
+        file_menu.addAction(action)
+        
+        action = QAction("Abrir...", self)
+        action.triggered.connect(self.open_file)
+        action.setShortcut(QKeySequence("Ctrl+O"))
+        file_menu.addAction(action)
+        
+        action = QAction("Guardar", self)
+        action.triggered.connect(self.save_file)
+        action.setShortcut(QKeySequence("Ctrl+S"))
+        file_menu.addAction(action)
+        
+        action = QAction("Guardar como...", self)
+        action.triggered.connect(self.save_file_as)
+        action.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        file_menu.addAction(action)
+        
         file_menu.addSeparator()
-        file_menu.addAction("Salir", self.close, "Ctrl+Q")
+        
+        action = QAction("Salir", self)
+        action.triggered.connect(self.close)
+        action.setShortcut(QKeySequence("Ctrl+Q"))
+        file_menu.addAction(action)
         
         # Menú Herramientas
         tools_menu = menubar.addMenu("&Herramientas")
-        tools_menu.addAction("Ejecutar", self.execute_code, "F5")
-        tools_menu.addAction("Analizar", self.analyze_with_ai, "F6")
+        action = QAction("Ejecutar", self)
+        action.triggered.connect(self.execute_code)
+        action.setShortcut(QKeySequence("F5"))
+        tools_menu.addAction(action)
+        
+        action = QAction("Analizar", self)
+        action.triggered.connect(self.analyze_with_ai)
+        action.setShortcut(QKeySequence("F6"))
+        tools_menu.addAction(action)
+        
         tools_menu.addSeparator()
-        tools_menu.addAction("Configuración", lambda: self.tab_widget.setCurrentIndex(1))
+        
+        action = QAction("Configuración", self)
+        action.triggered.connect(lambda: self.side_panel.setCurrentIndex(1))
+        tools_menu.addAction(action)
 
-    def set_application_icon():
-        """Configura el icono de la aplicación con manejo de errores"""
-        try:
-            # Rutas alternativas donde podría estar el icono
-            possible_icon_paths = [
-                "icono.png",
-                "resources/icono.png",
-                "images/icono.png",
-                os.path.join(os.path.dirname(__file__), "icono.png"),
-                "/usr/share/pixmaps/tu_app/icono.png"  # Para Linux
-            ]
-            
-            for icon_path in possible_icon_paths:
-                if os.path.exists(icon_path):
-                    app_icon = QIcon(icon_path)
-                    QApplication.setWindowIcon(app_icon)
-                    return True
-            
-            # Si no se encontró el icono, usar uno por defecto del sistema
-            print("Advertencia: No se encontró el archivo de icono, usando icono por defecto")
-            QApplication.setWindowIcon(QApplication.style().standardIcon(QStyle.SP_ComputerIcon))
-            return False
-        except Exception as e:
-            print(f"Error al cargar el icono: {str(e)}")
-            return False
+
 
     def setup_toolbar(self):
         """Configura la barra de herramientas mejorada"""
-        toolbar = self.addToolBar("Herramientas")
+        toolbar = QToolBar("Herramientas", self)
+        self.addToolBar(toolbar)
         
         actions = [
             ("Nuevo", "document-new", self.new_file),
@@ -573,10 +571,9 @@ class MainWindow(QMainWindow):
 
     def load_initial_config(self):
         """Carga la configuración inicial"""
-        # LM Studio config
-        endpoint_type = int(self.config.get('lm_studio/selected_endpoint_type', 0))  # Convertir a int
-        self.endpoint_type_combo.setCurrentIndex(endpoint_type)
-        self.ai_endpoint_input.setText(self.config.get('lm_studio/endpoint', "http://localhost:8080/v1/chat/completions"))
+        model_index = int(self.config.get('lm_studio/selected_model', 0))
+        self.model_combo.setCurrentIndex(model_index)
+        self.ai_endpoint_input.setText("https://api.groq.com/openai/v1/chat/completions")
         self.api_key_input.setText(self.config.get('lm_studio/api_key', ""))
         
         # Editor config
@@ -606,9 +603,7 @@ class MainWindow(QMainWindow):
 
     def save_configuration(self):
         """Guarda la configuración actual"""
-        # LM Studio config
-        self.config.set('lm_studio/selected_endpoint_type', self.endpoint_type_combo.currentIndex())
-        self.config.set('lm_studio/endpoint', self.ai_endpoint_input.text())
+        self.config.set('lm_studio/selected_model', self.model_combo.currentIndex())
         self.config.set('lm_studio/api_key', self.api_key_input.text())
         
         # Editor config
@@ -676,29 +671,31 @@ class MainWindow(QMainWindow):
             self.config.save()
 
     def test_ai_connection(self):
-        """Prueba la conexión con el endpoint de LM Studio"""
-        endpoint = self.ai_endpoint_input.text().strip()
-        if not endpoint:
-            QMessageBox.warning(self, "Error", "Por favor ingrese un endpoint válido")
+        """Prueba la conexión con Groq API"""
+        api_key = self.api_key_input.text().strip()
+        if not api_key:
+            QMessageBox.warning(self, "Error", "Por favor ingrese una API Key de Groq")
             return
         
-        api_key = self.api_key_input.text().strip() or None
-        endpoint_type = self.endpoint_type_combo.currentIndex()
-        
         try:
-            headers = {"Content-Type": "application/json"}
-            if api_key:
-                headers["Authorization"] = f"Bearer {api_key}"
-            
-            if endpoint_type == 2:  # GET /models
-                response = requests.get(endpoint, headers=headers, timeout=10)
-            else:  # POST /chat/completions or /completions
-                payload = {"model": "default"}
-                response = requests.post(endpoint, json=payload, headers=headers, timeout=10)
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+            model = self.get_selected_model()
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": "ping"}],
+                "max_tokens": 10
+            }
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                json=payload, headers=headers, timeout=15
+            )
             
             if response.status_code == 200:
                 QMessageBox.information(self, "Conexión exitosa", 
-                                      f"LM Studio respondió correctamente:\n{response.json()}")
+                                      f"Groq API responde correctamente\nModelo: {model}")
             else:
                 QMessageBox.warning(self, "Error de conexión", 
                                   f"Error {response.status_code}: {response.text}")
@@ -715,25 +712,34 @@ class MainWindow(QMainWindow):
             self.custom_prompt_edit.toPlainText()
         ]
         return prompts[self.prompt_selector.currentIndex()]
+    
+    def get_selected_model(self):
+        """Obtiene el modelo seleccionado"""
+        models = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it"
+        ]
+        return models[self.model_combo.currentIndex()]
 
     def analyze_with_ai(self):
-        """Envía el código a LM Studio para análisis"""
+        """Envía el código a Groq API para análisis"""
         code = self.editor.toPlainText()
         if not code.strip():
             QMessageBox.warning(self, "Error", "No hay código para analizar")
             return
         
-        endpoint = self.ai_endpoint_input.text().strip()
-        if not endpoint:
-            QMessageBox.warning(self, "Error", "Por favor configure un endpoint válido")
+        api_key = self.api_key_input.text().strip()
+        if not api_key:
+            QMessageBox.warning(self, "Error", "Por favor configure su API Key de Groq")
             return
         
-        api_key = self.api_key_input.text().strip() or None
-        endpoint_type = self.endpoint_type_combo.currentIndex()
+        model = self.get_selected_model()
         prompt = self.get_current_prompt()
         
-        self.ai_response.setPlainText("Conectando con LM Studio...")
-        self.ai_worker = AIWorker(endpoint, code, prompt, api_key, endpoint_type)
+        self.ai_response.setPlainText("Conectando con Groq...")
+        self.ai_worker = AIWorker(code, prompt, api_key, model)
         self.ai_worker.analysis_complete.connect(self.handle_ai_response)
         self.ai_worker.start()
 
@@ -809,12 +815,12 @@ class MainWindow(QMainWindow):
         ret = QMessageBox.question(
             self, "Documento modificado",
             "El documento ha sido modificado. ¿Desea guardar los cambios?",
-            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
         )
         
-        if ret == QMessageBox.Save:
+        if ret == QMessageBox.StandardButton.Save:
             return self.save_file()
-        elif ret == QMessageBox.Cancel:
+        elif ret == QMessageBox.StandardButton.Cancel:
             return False
         return True
 
@@ -875,14 +881,14 @@ class MainWindow(QMainWindow):
                 except:
                     pass
 
-    def closeEvent(self, event):
+    def closeEvent(self, a0):
         """Maneja el cierre de la ventana"""
         if self.maybe_save():
             # Guardar configuración al cerrar
             self.save_configuration()
-            event.accept()
+            a0.accept()
         else:
-            event.ignore()
+            a0.ignore()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
