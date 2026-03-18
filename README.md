@@ -1,8 +1,7 @@
 # Editor-ISK → v0.1 🐍🔥
 
-Editor Python "hecho en casa" con chispa de IA local (via LM Studio)  
+Editor Python "hecho en casa" con chispa de IA 
 *«Cuando Geany se me resistió, creé mi propia herramienta»*
-
 ---
 
 ## 🚀 **¡Hola, mundo!**
