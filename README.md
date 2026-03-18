@@ -5,8 +5,8 @@ Editor Python "hecho en casa" con chispa de IA
 ---
 
 ## 🚀 **¡Hola, mundo!**
-Este editor es mi experimento para tener un asistente de código **offline**, cocinado con:
-- ✔️ 5% de frustración con editores existentes  
+Este editor es mi experimento para tener un asistente de código, cocinado con:
+- ✔️ 5% de frustración con editores existentes (Aun no me han presentado a VsCodium)
 - ✔️ 95% de [DeepSeek](https://deepseek.com) (¡gracias por el copiloto!)  
 - ✔️ 100% de amor al código abierto *(y un 200% de testeo insuficiente)*
 
