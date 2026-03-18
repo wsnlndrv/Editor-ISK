@@ -12,14 +12,6 @@ Este editor es mi experimento para tener un asistente de código, cocinado con:
 
 ---
 
-## 🛠 **Configuración express** ⚡
-1. **Instala [LM Studio](https://lmstudio.ai/download)** (Win/Linux/Mac)
-2. **Descarga un modelo GGUF** como:  
-   [`deepseek-coder-6.7b-instruct.Q4_K_M`](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) (8GB VRAM mínimo)
-   Con una RTX Bi-Turbo Intercoller 7090 del año 2029 Vas sobrado.
-4. **Prende el servidor API** (puerto `8080` por defecto)
-5. **¡Arranca el editor!** (Terminal XFCE incluida de serie... En el S.O.)
-
 📜 Licencia ⚖️
 [![Licencia GPLv3](https://img.shields.io/badge/⚖️_Licencia-GPLv3-important)](LICENSE)
 [![Made with](https://img.shields.io/badge/Hecho_con-5%25_paciencia-ff69b4)](https://github.com/wsnlndrv)
